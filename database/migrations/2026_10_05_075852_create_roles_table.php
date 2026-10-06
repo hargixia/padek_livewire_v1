@@ -17,6 +17,10 @@ return new class extends Migration
             $table->string('deskripsi_role')->nullable();
             $table->timestamps();
         });
+
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreignId('role_id')->constrained('roles')->onUpdate('cascade');
+        });
     }
 
     /**
@@ -24,6 +28,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('roles');
+        // drop nya pindah ke users
+        // Schema::dropIfExists('roles');
     }
 };

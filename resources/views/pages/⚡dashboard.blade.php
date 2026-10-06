@@ -4,10 +4,12 @@ use Livewire\Component;
 
 new class extends Component
 {
-    //
+
 };
 ?>
 
 <div>
-    @livewire()
+
+    {{ Auth::user()->nama_lengkap }}
+
 </div>
