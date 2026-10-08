@@ -10,6 +10,7 @@ new class extends Component
 
 <div>
     {{-- Logo ringkas: bunga rafflesia + tulisan PADEK berwarna --}}
+    {{-- Logo ringkas: bunga rafflesia + tulisan PADEK berwarna --}}
     <div {{ $attributes->merge(['class' => 'flex items-center gap-2']) }}>
         <svg viewBox="0 0 100 100" class="size-9 shrink-0" aria-hidden="true">
             <ellipse cx="22" cy="86" rx="17" ry="7" fill="#1f8a2e" transform="rotate(-18 22 86)"/>

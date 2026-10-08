@@ -49,7 +49,7 @@ new #[Title('Masuk - PADEK')] class extends Component
     $label = 'mb-2 block text-sm font-bold text-[#3b1f14]';
 @endphp
 
-<div class="flex min-h-screen flex-col bg-[#fff8e8] text-[#3b1f14] lg:grid lg:grid-cols-2">
+<div class="flex min-h-dvh flex-col bg-[#fff8e8] text-[#3b1f14] lg:grid lg:grid-cols-2">
 
     <livewire:pages::component.hero/>
 
