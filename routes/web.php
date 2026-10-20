@@ -19,6 +19,10 @@ Route::group(['middleware' => ['auth']], function () {
     Route::livewire('/dashboard', 'pages::dashboard')->name('dashboard');
 
     Route::livewire('/permainan','pages::permainan.index')->name('permainan');
+    Route::livewire('/permainan/mi/{data}','pages::permainan.materi-index')->name('permainan.materi');
+    Route::livewire('/permainan/mt/{data}','pages::permainan.materi-tambah')->name('permainan.materi-tambah');
+    
+
     Route::livewire('/skor','pages::skors.index')->name('skor');
     Route::livewire('/users','pages::users.index')->name('users');
 

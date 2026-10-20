@@ -1,6 +1,10 @@
 <?php
 
 use App\Models\data_permainan;
+use App\Models\data_materi;
+
+use App\Http\Controllers\api_support;
+
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -18,6 +22,7 @@ new #[Title('Daftar Permainan - PADEK')] class extends Component
     public ?int $hapusId = null;
     public string $hapusNama = '';
 
+
     #[Computed]
     public function total(): int
     {
@@ -28,6 +33,17 @@ new #[Title('Daftar Permainan - PADEK')] class extends Component
     public function permainans()
     {
         return data_permainan::with('pembuat')->latest()->paginate(9);
+    }
+
+    public function hitung_jumlah($id)
+    {
+        return data_materi::where('permainan_id',$id)->count();
+    }
+
+    public function parcel_enc($id)
+    {
+        $as = new api_support();
+        return $as->my_encrypt("materi" . ">>" . $id);
     }
 
     public function openForm(): void
@@ -58,10 +74,9 @@ new #[Title('Daftar Permainan - PADEK')] class extends Component
             'deskripsi_permainan' => $this->deskripsi_permainan ?: null,
             'pembuat_id'          => auth()->id(),
         ]);
-
         $this->closeForm();
-        $this->resetPage();
         session()->flash('sukses', 'Permainan baru berhasil ditambahkan.');
+        $this->resetPage();
     }
 
     public function konfirmasiHapus(int $id): void
@@ -82,11 +97,12 @@ new #[Title('Daftar Permainan - PADEK')] class extends Component
 
     public function hapus(): void
     {
+
         $permainan = data_permainan::find($this->hapusId);
 
         if ($permainan) {
             abort_unless($permainan->pembuat_id === auth()->id(), 403);
-
+            $materi = data_materi::where('permainan_id',$this->hapusId)->delete();
             $nama = $permainan->nama_permainan;
             $permainan->delete();
 
@@ -139,6 +155,14 @@ new #[Title('Daftar Permainan - PADEK')] class extends Component
         </div>
     @endif
 
+    {{-- Pesan gagal --}}
+    @if (session()->has('gagal'))
+        <div class="mb-4 flex items-center gap-3 rounded-2xl border-2 border-[#761420]/30 bg-[#f01c35] px-4 py-3 text-sm font-semibold text-[#f7e7e9]" role="status">
+
+            {{ session('gagal') }}
+        </div>
+    @endif
+
     {{-- Keterangan jumlah + tombol tambah --}}
     <div class="mb-6 flex flex-col gap-3 rounded-2xl border-2 border-[#ecd9b0] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
         <p class="flex items-center gap-2 text-base font-medium text-[#7a5a45]">
@@ -162,45 +186,51 @@ new #[Title('Daftar Permainan - PADEK')] class extends Component
         </div>
     @else
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            @foreach ($this->permainans as $permainan)
+            @foreach ($this->permainans as $i => $permainan)
                 @php
                     [$bg, $fg] = $tema[$permainan->id % 3];
                     $pembuat   = $permainan->pembuat?->nama_lengkap ?: ($permainan->pembuat?->email ?? 'Tidak diketahui');
                     $bolehHapus = $permainan->pembuat_id === auth()->id();
                 @endphp
 
-                <article wire:key="permainan-{{ $permainan->id }}"
-                         class="group relative flex h-full flex-col rounded-3xl border-2 border-[#ecd9b0] bg-white p-5 transition hover:-translate-y-1 hover:shadow-[0_6px_0_#ecd9b0]">
-                    @if ($bolehHapus)
-                        <button type="button" wire:click="konfirmasiHapus({{ $permainan->id }})"
-                                title="Hapus permainan" aria-label="Hapus permainan {{ $permainan->nama_permainan }}"
-                                class="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white text-[#7a5a45] opacity-0 shadow-sm ring-2 ring-[#ecd9b0] transition hover:bg-[#d4131b] hover:text-white hover:ring-[#d4131b] focus:outline-none focus-visible:opacity-100 focus-visible:ring-4 focus-visible:ring-[#d4131b]/30 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100">
-                            <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
-                        </button>
-                    @endif
+                    <article wire:key="permainan-{{ $permainan->id }}"
+                        class="group relative flex h-full flex-col rounded-3xl border-2 border-[#ecd9b0] bg-white p-5 transition hover:-translate-y-1 hover:shadow-[0_6px_0_#ecd9b0]">
+                        @if ($bolehHapus)
+                            <button type="button" wire:click="konfirmasiHapus({{ $permainan->id }})"
+                                    title="Hapus permainan" aria-label="Hapus permainan {{ $permainan->nama_permainan }}"
+                                    class="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white text-[#7a5a45] opacity-0 shadow-sm ring-2 ring-[#ecd9b0] transition hover:bg-[#d4131b] hover:text-white hover:ring-[#d4131b] focus:outline-none focus-visible:opacity-100 focus-visible:ring-4 focus-visible:ring-[#d4131b]/30 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100">
+                                <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                            </button>
+                        @endif
 
+                        <a href="/permainan/mi/{{ $this->parcel_enc($permainan->id) }}" wire:navigate>
+                        <div class="flex size-12 items-center justify-center rounded-2xl {{ $bg }} {{ $fg }}">
+                            <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 01-.657.643 48.39 48.39 0 01-4.163-.3c.186 1.613.293 3.25.315 4.907a.656.656 0 01-.658.663v0c-.355 0-.676-.186-.959-.401a1.647 1.647 0 00-1.003-.349c-1.036 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401v0c.31 0 .555.26.532.57a48.039 48.039 0 01-.642 5.056c1.518.19 3.058.309 4.616.354a.64.64 0 00.657-.643v0c0-.355-.186-.676-.401-.959a1.647 1.647 0 01-.349-1.003c0-1.035 1.008-1.875 2.25-1.875 1.243 0 2.25.84 2.25 1.875 0 .369-.128.713-.349 1.003-.215.283-.4.604-.4.959v0c0 .333.277.599.61.58a48.1 48.1 0 005.427-.63 48.05 48.05 0 00.582-4.717.532.532 0 00-.533-.57v0c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.035 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.37 0 .713.128 1.003.349.283.215.604.401.96.401v0a.656.656 0 00.658-.663 48.422 48.422 0 00-.37-5.36c-1.886.342-3.81.574-5.766.689a.578.578 0 01-.61-.58v0z"/></svg>
+                        </div>
 
-                    <div class="flex size-12 items-center justify-center rounded-2xl {{ $bg }} {{ $fg }}">
-                        <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 01-.657.643 48.39 48.39 0 01-4.163-.3c.186 1.613.293 3.25.315 4.907a.656.656 0 01-.658.663v0c-.355 0-.676-.186-.959-.401a1.647 1.647 0 00-1.003-.349c-1.036 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401v0c.31 0 .555.26.532.57a48.039 48.039 0 01-.642 5.056c1.518.19 3.058.309 4.616.354a.64.64 0 00.657-.643v0c0-.355-.186-.676-.401-.959a1.647 1.647 0 01-.349-1.003c0-1.035 1.008-1.875 2.25-1.875 1.243 0 2.25.84 2.25 1.875 0 .369-.128.713-.349 1.003-.215.283-.4.604-.4.959v0c0 .333.277.599.61.58a48.1 48.1 0 005.427-.63 48.05 48.05 0 00.582-4.717.532.532 0 00-.533-.57v0c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.035 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.37 0 .713.128 1.003.349.283.215.604.401.96.401v0a.656.656 0 00.658-.663 48.422 48.422 0 00-.37-5.36c-1.886.342-3.81.574-5.766.689a.578.578 0 01-.61-.58v0z"/></svg>
-                    </div>
+                        <h3 class="mt-4 text-lg font-extrabold leading-snug">{{ $permainan->nama_permainan }}</h3>
+                        <p class="mt-2 line-clamp-3 text-sm leading-relaxed text-[#7a5a45]">
+                            {{ $permainan->deskripsi_permainan ?: 'Belum ada deskripsi.' }}
+                        </p>
 
-                    <h3 class="mt-4 text-lg font-extrabold leading-snug">{{ $permainan->nama_permainan }}</h3>
-                    <p class="mt-2 line-clamp-3 text-sm leading-relaxed text-[#7a5a45]">
-                        {{ $permainan->deskripsi_permainan ?: 'Belum ada deskripsi.' }}
-                    </p>
+                        <p class="mt-2 line-clamp-3 text-sm leading-relaxed text-[#7a5a45]">
+                            Jumlah Materi : {{ $this->hitung_jumlah($permainan->id) ?: "Error" }}
+                        </p>
 
-                    <div class="mt-auto flex items-center justify-between gap-3 border-t-2 border-dashed border-[#ecd9b0] pt-4 text-xs text-[#7a5a45]">
-                        <span class="flex shrink-0 items-center gap-1.5 font-medium">
-                            <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
-                            <time datetime="{{ $permainan->created_at->toDateString() }}">{{ $permainan->created_at->locale('id')->translatedFormat('d F Y') }}</time>
-                        </span>
+                        <div class="mt-auto flex items-center justify-between gap-3 border-t-2 border-dashed border-[#ecd9b0] pt-4 text-xs text-[#7a5a45]">
+                            <span class="flex shrink-0 items-center gap-1.5 font-medium">
+                                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
+                                <time datetime="{{ $permainan->created_at->toDateString() }}">{{ $permainan->created_at->locale('id')->translatedFormat('d F Y') }}</time>
+                            </span>
 
-                        <span class="flex min-w-0 items-center gap-2" title="Dibuat oleh {{ $pembuat }}">
-                            <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#f5b800] text-[0.7rem] font-extrabold text-[#3b1f14]" aria-hidden="true">{{ strtoupper(mb_substr($pembuat, 0, 1)) }}</span>
-                            <span class="truncate font-semibold text-[#3b1f14]">{{ $pembuat }}</span>
-                        </span>
-                    </div>
-                </article>
+                            <span class="flex min-w-0 items-center gap-2" title="Dibuat oleh {{ $pembuat }}">
+                                <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#f5b800] text-[0.7rem] font-extrabold text-[#3b1f14]" aria-hidden="true">{{ strtoupper(mb_substr($pembuat, 0, 1)) }}</span>
+                                <span class="truncate font-semibold text-[#3b1f14]">{{ $pembuat }}</span>
+                            </span>
+                        </div>
+                        </a>
+                    </article>
+
             @endforeach
         </div>
 

@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('data_materis', function (Blueprint $table) {
             $table->id();
-
+            $table->integer('urutan_materi')->default(0);
             $table->foreignId('permainan_id')->constrained('data_permainans')->onUpdate('cascade');
-            $table->foreignId('thumbnail_id')->constrained('data_thumbnails')->onUpdate('cascade');
 
             $table->string('nama_materi');
+            $table->enum('jenis_materi', ['Teks', 'Gambar', 'Video'])->default('Teks');
             $table->string('deskripsi_materi')->nullable();
             $table->text('isi_materi');
 

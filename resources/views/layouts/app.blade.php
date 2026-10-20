@@ -59,12 +59,12 @@
             <nav class="flex-1 space-y-2 overflow-y-auto px-4 py-2" aria-label="Menu utama">
                 @foreach ($menuUtama as $item)
                 @php $aktif = request()->is($item['match']); @endphp
-                <a href="{{ $item['href'] }}" wire:navigate @if($aktif) aria-current="page" @endif
-                class="flex items-center gap-3 rounded-2xl px-4 py-3 text-base font-bold transition focus:outline-none focus-visible:ring-4 focus-visible:ring-[#d4131b]/20
-                        {{ $aktif ? 'bg-[#d4131b] text-white shadow-[0_4px_0_#a30d14]' : 'text-[#7a5a45] hover:bg-[#fff1d6] hover:text-[#3b1f14]' }}">
-                    <svg class="{{ $svg }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ $icons[$item['icon']] }}"/></svg>
-                    {{ $item['label'] }}
-                </a>
+                    <a href="{{ $item['href'] }}" wire:navigate @if($aktif) aria-current="page" @endif
+                    class="flex items-center gap-3 rounded-2xl px-4 py-3 text-base font-bold transition focus:outline-none focus-visible:ring-4 focus-visible:ring-[#d4131b]/20
+                            {{ $aktif ? 'bg-[#d4131b] text-white shadow-[0_4px_0_#a30d14]' : 'text-[#7a5a45] hover:bg-[#fff1d6] hover:text-[#3b1f14]' }}">
+                        <svg class="{{ $svg }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ $icons[$item['icon']] }}"/></svg>
+                        {{ $item['label'] }}
+                    </a>
                 @endforeach
             </nav>
 
